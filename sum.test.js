@@ -1,5 +1,5 @@
 /**
- * Simple test suite for faf-taf-demo
+ * Simple test suite for taf-demo
  * Demonstrates .taf (Testing Activity Feed) tracking
  */
 
@@ -23,7 +23,7 @@ describe('String Operations', () => {
   });
 
   test('string length', () => {
-    expect('faf-taf-demo'.length).toBe(12);
+    expect('taf-demo'.length).toBe(8);
   });
 });
 

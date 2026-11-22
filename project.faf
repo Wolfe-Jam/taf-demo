@@ -5,7 +5,7 @@ format: faf
 version: 2.0.0
 
 project:
-  name: faf-taf-demo
+  name: taf-demo
   goal: Demonstrate the Git-Native Receipt Printer (.taf) in action
   main_language: JavaScript
 
