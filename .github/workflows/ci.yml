@@ -9,11 +9,10 @@ on:
 
 jobs:
   test:
-    name: Test + Receipt
+    name: Test
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-
+      contents: read
     steps:
       - uses: actions/checkout@v7
 
@@ -25,14 +24,29 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # `shell: bash` turns on pipefail: a failing test fails this step.
       - name: Run tests
+        shell: bash
         run: npm test 2>&1 | tee test-output.txt
 
-      - name: Update TAF Receipt
-        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
-        uses: Wolfe-Jam/faf-taf-git@v2.4.6
+      - name: Upload test output
+        if: ${{ !cancelled() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+        uses: actions/upload-artifact@v7
         with:
-          test-output-file: test-output.txt
-          auto-commit: 'true'
-          commit-message: 'chore(taf): update receipt [skip ci]'
-          target-branch: taf-receipts
+          name: taf-test-output
+          path: test-output.txt
+          overwrite: true
+
+  # One receipt per run on main, red runs included (FAILED), saved to the
+  # taf-receipts branch by taf-git's receipt job, the only job that writes.
+  receipt:
+    needs: test
+    if: ${{ !cancelled() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+    permissions:
+      contents: write
+    uses: Wolfe-Jam/taf-git/.github/workflows/receipt.yml@v3.0.0
+    with:
+      artifact-name: taf-test-output
+      test-output-file: test-output.txt
+      test-result: ${{ needs.test.result }}
+      commit-message: 'chore(taf): update receipt [skip ci]'
